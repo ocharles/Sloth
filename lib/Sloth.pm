@@ -193,11 +193,6 @@ understanding how to use Sloth:
 Explains how the various parts of Sloth interact with each other, how they are
 glued together by default, and how you can replace this with your own glue.
 
-=item L<Sloth::Manual::Tutorial>
-
-Looks at building a RESTful Web service for a Zoo, and looks at displaying
-resources in various representations, and handling various HTTP methods.
-
 =back
 
 =cut
