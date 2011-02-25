@@ -1,3 +1,6 @@
+# ABSTRACT: how Sloth works
+# PODNAME: Sloth::Manual::Architecture
+
 =head1 The Anatomy of a Sloth
 
     He who loves practice without theory is like the sailor who boards ship
