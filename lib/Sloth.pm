@@ -11,6 +11,7 @@ use Module::Pluggable::Object;
 use Moose::Util qw( does_role );
 use Path::Router;
 use Plack::Request;
+use Plack::Response;
 use Try::Tiny;
 
 extends 'Plack::Component';
@@ -116,6 +117,21 @@ has router => (
     lazy => 1
 );
 
+sub request {
+    my ($self, $request) = @_;
+    if(my $route = $self->router->match($request->path)) {
+        $route->target->handle_request(
+            Request->new(
+                plack_request => $request,
+                path_components => $route->mapping
+            )
+        )
+    }
+    else {
+        http_throw('NotFound');
+    }
+}
+
 =method call
 
     $self->call($psgi_env : HashRef)
@@ -130,17 +146,9 @@ sub call {
     my $request = Plack::Request->new($env);
 
     my $ret = try {
-        if(my $route = $self->router->match($request->path)) {
-            return $route->target->handle_request(
-                Request->new(
-                    plack_request => $request,
-                    path_components => $route->mapping
-                )
-            )->finalize;
-        }
-        else {
-            http_throw('NotFound');
-        }
+        return Plack::Response->new(
+            200 => [] => $self->request($request)
+        )->finalize;
     } catch {
         $_->as_psgi;
     };

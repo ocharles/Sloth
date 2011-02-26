@@ -6,7 +6,6 @@ use namespace::autoclean;
 
 use HTTP::Throwable::Factory 'http_throw';
 use Module::Pluggable::Object;
-use Plack::Response;
 
 has c => (
     is => 'ro'
@@ -118,9 +117,7 @@ sub handle_request {
         my $serializer = $self->_serializer($accept)
             or next;
 
-        return Plack::Response->new(
-            200 => [] => $serializer->serialize($resource)
-        ) or http_throw('NotAcceptable');
+        return $serializer->serialize($resource);
     }
 
     http_throw('NotAcceptable');
