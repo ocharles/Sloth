@@ -7,6 +7,10 @@ use Data::TreeValidator::Sugar qw( branch );
 use HTTP::Throwable::Factory qw( http_throw );
 use Try::Tiny;
 
+has c => (
+    is => 'ro',
+);
+
 =method execute
 
     $self->execute($cleaned_parameters)

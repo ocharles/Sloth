@@ -8,6 +8,24 @@ use HTTP::Throwable::Factory 'http_throw';
 use Module::Pluggable::Object;
 use Plack::Response;
 
+has c => (
+    is => 'ro'
+);
+
+=method resource_arguments
+
+    $self->resource_arguments : @List
+
+Generate a set of parameters that will be passed to methods. If your methods
+all require a set of common, shared objects, you can override this to provide
+those extra initialization arguments.
+
+=cut
+
+sub resource_arguments {
+    return ( c => shift->c );
+}
+
 =attr representations
 
 A C<ArrayRef[Sloth::Representation]> of all known representations of resources.
@@ -54,7 +72,7 @@ has methods => (
         return {
             map {
                 my ($method) = $_ =~ /.*::([a-z]*)$/i;
-                uc($method) => $_->new
+                uc($method) => $_->new($self->resource_arguments);
             } grep {
                 $_->does('Sloth::Method')
             } $mpo->plugins

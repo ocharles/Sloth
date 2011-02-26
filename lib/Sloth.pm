@@ -15,6 +15,10 @@ use Try::Tiny;
 
 extends 'Plack::Component';
 
+has c => (
+    is => 'ro'
+);
+
 =method resource_arguments
 
     $self->resource_arguments : @List
@@ -25,7 +29,9 @@ those extra initialization arguments.
 
 =cut
 
-sub resource_arguments { }
+sub resource_arguments {
+    return ( c => shift->c );
+}
 
 =attr representations
 
