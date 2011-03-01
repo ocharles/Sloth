@@ -6,6 +6,7 @@ use MooseX::NonMoose;
 
 use aliased 'Sloth::Request';
 
+use HTTP::Message::PSGI;
 use HTTP::Throwable::Factory qw(http_throw);
 use Module::Pluggable::Object;
 use Moose::Util qw( does_role );
@@ -117,19 +118,25 @@ has router => (
     lazy => 1
 );
 
-sub request {
+=method mock
+
+    $self->mock(GET '/foo')
+
+Allows you to give a L<HTTP::Request> object to your application, and
+have be requested, and possibly treated slightly different than other
+requests.
+
+If an Accept header is not present in the request, Sloth will automatically
+set it to C<Accept: mock/ref>. You can then provide a representation that
+returns a Perl reference, rather than actually performing any serialization.
+This can make testing your resources and methods significantly easier.
+
+=cut
+
+sub mock {
     my ($self, $request) = @_;
-    if(my $route = $self->router->match($request->path)) {
-        $route->target->handle_request(
-            Request->new(
-                plack_request => $request,
-                path_components => $route->mapping
-            )
-        )
-    }
-    else {
-        http_throw('NotFound');
-    }
+    $request->header(Accept => 'mock/ref') unless $request->header('Accept');
+    $self->_request($request->to_psgi);
 }
 
 =method call
@@ -143,11 +150,9 @@ specification from your server.
 
 sub call {
     my ($self, $env) = @_;
-    my $request = Plack::Request->new($env);
-
     my $ret = try {
         return Plack::Response->new(
-            200 => [] => $self->request($request)
+            200 => [] => $self->_request($env)
         )->finalize;
     } catch {
         $_->as_psgi;
@@ -155,6 +160,24 @@ sub call {
 
     return $ret;
 };
+
+sub _request {
+    my ($self, $env) = @_;
+    my $request = Plack::Request->new($env);
+
+    if(my $route = $self->router->match($request->path)) {
+        $route->target->handle_request(
+            Request->new(
+                plack_request => $request,
+                path_components => $route->mapping
+            )
+        )
+    }
+    else {
+        http_throw('NotFound');
+    }
+}
+
 
 1;
 
