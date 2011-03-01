@@ -1,5 +1,10 @@
 Revision history for Sloth
 
+* 0.02 March  1, 2011 12:15
+  - Added the `c` attribute to allow passing a context object around
+  - Separate the request and response generation, and add a `mock` method
+    to Sloth
+
 * 0.01 February 25, 2011 13:23
   - Initial release
   - Has basic Sloth architecture, along with Sloth::Manual::Architecture
