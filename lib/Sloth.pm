@@ -107,11 +107,11 @@ has router => (
         my $self = shift;
         my $router = Path::Router->new;
         for my $resource ($self->resources) {
-            $router->add_route(
-                $resource->path => (
-                    target => $resource
+            for my $route (@{ $resource->_routes }) {
+                $router->include_router(
+                    $resource->path => $route
                 )
-            );
+            }
         }
         return $router;
     },
@@ -178,6 +178,13 @@ sub _request {
     }
 }
 
+sub prepare_app {
+    my $self = shift;
+
+    # Force creation of lazy attributes
+    $self->resources;
+    $self->representations;
+}
 
 1;
 

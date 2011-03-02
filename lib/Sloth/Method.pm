@@ -120,4 +120,10 @@ sub _collect_errors {
     );
 }
 
+has path => (
+    isa => 'Str',
+    default => '',
+    is => 'ro'
+);
+
 1;

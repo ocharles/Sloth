@@ -79,7 +79,42 @@ has methods => (
     },
     handles => {
         _method_handler => 'get',
+        _method_handlers => 'values',
         supported_methods => 'keys'
+    }
+);
+
+has router => (
+    is => 'ro',
+    lazy => 1,
+    default => sub {
+        my $self = shift;
+        my $router = Path::Router->new
+    }
+);
+
+has path => (
+    is => 'ro',
+    isa => 'Str',
+    required => 1
+);
+
+has _routes => (
+    is => 'ro',
+    lazy => 1,
+    default => sub {
+        my $self = shift;
+        return [
+            map {
+                my $router = Path::Router->new;
+                $router->add_route(
+                    $_->path => (
+                        target => $self
+                    )
+                );
+                $router;
+            } $self->_method_handlers
+        ];
     }
 );
 

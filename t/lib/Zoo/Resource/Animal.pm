@@ -2,6 +2,6 @@ package Zoo::Resource::Animal;
 use Moose;
 with 'Sloth::Resource';
 
-sub path { '/animal/:name' }
+has '+path' => ( default => '/animal/:name/' );
 
 1;
