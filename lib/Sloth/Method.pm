@@ -5,6 +5,9 @@ use Moose::Role;
 
 use Data::TreeValidator::Sugar qw( branch );
 use HTTP::Throwable::Factory qw( http_throw );
+use HTTP::Status qw( HTTP_OK );
+use Scalar::Util qw( blessed );
+use Sloth::Response;
 use Try::Tiny;
 
 has c => (
@@ -81,7 +84,7 @@ the body, etc). Most users will simply need to implement L</execute>.
 =cut
 
 sub process_request {
-    my ($self, $request) = @_;
+    my ($self, $request, $serializer) = @_;
 
     my %args = %{ $request->path_components };
     if ($self->handles_content_types) {
@@ -104,7 +107,18 @@ sub process_request {
     })
         unless $result->valid;
 
-    $self->execute($result->clean, $request);
+    my $response = $self->execute($result->clean, $request, $serializer);
+    if (blessed($response) && $response->isa('Sloth::Response')) {
+        return $response;
+    }
+    else {
+        http_throw('NotAcceptable') unless $serializer;
+        Sloth::Response->new(
+            HTTP_OK, [
+                'Content-Type' => $serializer->content_type
+            ], $serializer->serialize($response)
+        );
+    }
 }
 
 sub _collect_errors {

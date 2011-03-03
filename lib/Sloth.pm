@@ -151,8 +151,7 @@ specification from your server.
 sub call {
     my ($self, $env) = @_;
     my $ret = try {
-        my ($body, $type) = $self->_request($env);
-        [ 200 => [ 'Content-Type' => $type ] => [ $body ] ];
+        return $self->_request($env);
     } catch {
         $_->as_psgi;
     };
@@ -171,7 +170,7 @@ sub _request {
                 path_components => $route->mapping,
                 router => $self->router
             )
-        );
+        )->finalize;
     }
     else {
         http_throw('NotFound');

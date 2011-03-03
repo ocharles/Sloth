@@ -174,10 +174,7 @@ sub handle_request {
     try {
         # This is done in 2 steps because we might not need to serialize if we
         # throw a 2xx exception.
-        my $response = $method->process_request($request);
-
-        http_throw('NotAcceptable') unless $serializer;
-        return ($serializer->serialize($response), $serializer->content_type);
+        return $method->process_request($request, $serializer);
     }
     catch {
         if(blessed($_) && $_->does('HTTP::Throwable')) {
