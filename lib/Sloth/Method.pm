@@ -104,7 +104,7 @@ sub process_request {
     })
         unless $result->valid;
 
-    $self->execute($result->clean);
+    $self->execute($result->clean, $request);
 }
 
 sub _collect_errors {

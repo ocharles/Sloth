@@ -6,6 +6,7 @@ use namespace::autoclean;
 
 use HTTP::Throwable::Factory 'http_throw';
 use Module::Pluggable::Object;
+use String::CamelCase 'decamelize';
 
 has c => (
     is => 'ro'
@@ -109,12 +110,24 @@ has _routes => (
                 my $router = Path::Router->new;
                 $router->add_route(
                     $_->path => (
+                        defaults => {
+                            resource => $self->name,
+                        },
                         target => $self
                     )
                 );
                 $router;
             } $self->_method_handlers
         ];
+    }
+);
+
+has name => (
+    is => 'ro',
+    default => sub {
+        my $self = shift;
+        my ($name) = $self->meta->name =~ /^.*::(.*)$/;
+        return decamelize($name);
     }
 );
 

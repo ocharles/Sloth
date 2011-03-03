@@ -169,9 +169,10 @@ sub _request {
         $route->target->handle_request(
             Request->new(
                 plack_request => $request,
-                path_components => $route->mapping
+                path_components => $route->mapping,
+                router => $self->router
             )
-        )
+        );
     }
     else {
         http_throw('NotFound');
