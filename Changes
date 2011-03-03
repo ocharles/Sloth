@@ -1,5 +1,19 @@
 Revision history for Sloth
 
+* 0.04 March  3, 2011 22:37
+  - Allow methods to return custom responses
+    By default, a 200 OK response will be returned, with the returned object
+    serialized into the body and the content-type appropriately set.
+    However, methods can now provide their own response if they need to
+    provide additional headers or a differing response code.
+
+  - Correct content negotiation for serialization
+    Now uses quality and fitness to find the best possible serializer.
+
+  - Added a uri_for method to requests.
+    This allows you to find the URI for a resource, given path parts and get a URI
+    that's relative to wherever the application is mounted.
+
 * 0.03 March  3, 2011 13:50
   - Allow methods to specify their own path that is subordinate to
     resources.
@@ -13,3 +27,4 @@ Revision history for Sloth
 * 0.01 February 25, 2011 13:23
   - Initial release
   - Has basic Sloth architecture, along with Sloth::Manual::Architecture
+
