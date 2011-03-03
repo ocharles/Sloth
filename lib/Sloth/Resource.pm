@@ -6,7 +6,10 @@ use namespace::autoclean;
 
 use HTTP::Throwable::Factory 'http_throw';
 use Module::Pluggable::Object;
+use REST::Utils qw( best_match );
+use Scalar::Util qw( blessed );
 use String::CamelCase 'decamelize';
+use Try::Tiny;
 
 has c => (
     is => 'ro'
@@ -28,7 +31,7 @@ sub resource_arguments {
 
 =attr representations
 
-A C<ArrayRef[Sloth::Representation]> of all known representations of resources.
+A C<Map[Str => Sloth::Representation]> of all known representations of resources.
 
 By default, this will be taken from L<Sloth>, your main Sloth application.
 However, if this resource only has specific representations that differ from the
@@ -38,10 +41,12 @@ rest of you application, you can override it.
 
 has representations => (
     required => 1,
-    isa => 'ArrayRef',
-    traits => [ 'Array' ],
+    isa => 'HashRef',
+    traits => [ 'Hash' ],
     handles => {
-        representations => 'elements'
+        representations => 'values',
+        accepts => 'keys',
+        representation => 'get'
     }
 );
 
@@ -158,17 +163,32 @@ sub handle_request {
             allow => [ $self->supported_methods ]
         });
 
-    my $resource = $method->process_request($request);
-
-    my @accept = $request->header('Accept');
-    for my $accept ($request->header('Accept')) {
-        my $serializer = $self->_serializer($accept)
-            or next;
-
-        return $serializer->serialize($resource);
+    my $serializer;
+    if($self->accepts and my $best_match = best_match(
+        [ $self->accepts ],
+        $request->header('Accept')
+    )) {
+        $serializer = $self->representation($best_match);
     }
 
-    http_throw('NotAcceptable');
+    try {
+        # This is done in 2 steps because we might not need to serialize if we
+        # throw a 2xx exception.
+        my $response = $method->process_request($request);
+
+        http_throw('NotAcceptable') unless $serializer;
+        return ($serializer->serialize($response), $serializer->content_type);
+    }
+    catch {
+        if(blessed($_) && $_->does('HTTP::Throwable')) {
+            $_->throw;
+        }
+        else {
+            $_
+                ? http_throw(BadRequest => { message => $_ || '' })
+                : http_throw('BadRequest')
+        }
+    };
 }
 
 1;

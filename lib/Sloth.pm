@@ -46,16 +46,16 @@ has representations => (
     default => sub {
         my $self = shift;
         my $prefix = $self->meta->name . '::Representation';
-        return [
+        return {
             map {
-                $_->new
+                $_->content_type => $_->new
             } grep {
                 does_role($_ => 'Sloth::Representation');
             } Module::Pluggable::Object->new(
                 search_path => $prefix,
                 require => 1
             )->plugins
-        ];
+        };
     },
     lazy => 1
 );
@@ -151,9 +151,8 @@ specification from your server.
 sub call {
     my ($self, $env) = @_;
     my $ret = try {
-        return Plack::Response->new(
-            200 => [] => $self->_request($env)
-        )->finalize;
+        my ($body, $type) = $self->_request($env);
+        [ 200 => [ 'Content-Type' => $type ] => [ $body ] ];
     } catch {
         $_->as_psgi;
     };
