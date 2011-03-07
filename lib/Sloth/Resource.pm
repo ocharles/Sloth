@@ -6,6 +6,7 @@ use namespace::autoclean;
 
 use HTTP::Throwable::Factory 'http_throw';
 use Module::Pluggable::Object;
+use Moose::Util qw( does_role );
 use REST::Utils qw( best_match );
 use Scalar::Util qw( blessed );
 use String::CamelCase 'decamelize';
@@ -177,12 +178,12 @@ sub handle_request {
         return $method->process_request($request, $serializer);
     }
     catch {
-        if(blessed($_) && $_->does('HTTP::Throwable')) {
+        if(does_role($_, 'HTTP::Throwable')) {
             $_->throw;
         }
         else {
             $_
-                ? http_throw(BadRequest => { message => $_ || '' })
+                ? http_throw(BadRequest => { message => "$_" })
                 : http_throw('BadRequest')
         }
     };
