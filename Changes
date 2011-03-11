@@ -1,5 +1,16 @@
 Revision history for Sloth
 
+* 0.05 March 11, 2011 11:29
+  - Added missing dependency on String::CamelCase
+
+  - Only rethrow exceptions if they are HTTP::Throwable
+    Previously any blessed exception would be rethrown, which would lead to
+    DBIx::Class exceptions being lost.
+
+  - Add try_serialize to method handlers
+    This allows users to return their own custom response with serialization, from a
+    method handler.
+
 * 0.04 March  3, 2011 22:37
   - Allow methods to return custom responses
     By default, a 200 OK response will be returned, with the returned object
@@ -27,4 +38,3 @@ Revision history for Sloth
 * 0.01 February 25, 2011 13:23
   - Initial release
   - Has basic Sloth architecture, along with Sloth::Manual::Architecture
-
